@@ -42,6 +42,7 @@ book-recommendation-engine/
 ├── main.py                 # Application entry point
 ├── requirements.txt        # Dependency management
 └── README.md               # Project documentation
+```
 
 ## Demo
 Here is the recommendation engine in action, generating top-5 suggestions for a specific book title locally:
