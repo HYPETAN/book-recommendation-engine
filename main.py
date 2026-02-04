@@ -2,42 +2,50 @@ from src.data_loader import DataLoader
 from src.recommender import RecommenderEngine
 import time
 
-
 def main():
     # CONFIGURATION
-    # To use AWS, set USE_S3 to True and provide bucket name
     USE_S3 = False
-    BUCKET_NAME = "your-s3-bucket-name"
-    FILE_PATH = "data/Ratings.csv"  # Local path or S3 key
+    BUCKET_NAME = "your-bucket-name"
+    
+    # We now look for TWO files
+    RATINGS_FILE = "data/Ratings.csv" 
+    BOOKS_FILE = "data/Books.csv"
 
     # 1. Load Data
-    loader = DataLoader(FILE_PATH, use_s3=USE_S3, bucket_name=BUCKET_NAME)
-    df = loader.load_data()
-    print(f"Data Loaded. Rows: {len(df)}")
+    loader = DataLoader(RATINGS_FILE, BOOKS_FILE, use_s3=USE_S3, bucket_name=BUCKET_NAME)
+    
+    try:
+        df = loader.load_data()
+        print(f"Data Loaded Successfully. Rows: {len(df)}")
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+        print("Make sure you created a 'data' folder and put both .csv files inside!")
+        return
 
     # 2. Initialize Engine
     engine = RecommenderEngine(df)
     engine.prepare_matrix()
-
+    
     # 3. Train Model
     start_time = time.time()
     engine.train()
     print(f"Training completed in {time.time() - start_time:.2f} seconds.")
 
     # 4. Generate Recommendation
-    # Let's pick a random book from the dataset to test
-    test_book = df['book_id'].iloc[0]
-    print(f"\nGenerating recommendations for Book ISBN: {test_book}")
-
-    recs = engine.get_recommendations(test_book)
-
+    # Test with a random book from the merged data
+    test_isbn = df['isbn'].iloc[0] 
+    test_title = df['title'].iloc[0]
+    
+    print(f"\nGenerating recommendations for: '{test_title}'")
+    
+    recs = engine.get_recommendations(test_isbn)
+    
     if recs:
-        print("Top 5 Recommended Books:")
-        for i, book in enumerate(recs):
-            print(f"{i+1}. {book}")
+        print("\nTop 5 Recommended Books:")
+        for i, book_title in enumerate(recs):
+            print(f"{i+1}. {book_title}")
     else:
-        print("Book not found in database.")
-
+        print("Book not found.")
 
 if __name__ == "__main__":
     main()
